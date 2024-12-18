@@ -1,4 +1,4 @@
-from typing import Annotated, List
+from typing import Annotated, List, Optional
 from fastapi import FastAPI, Body, HTTPException, status
 import uvicorn
 from pydantic import BaseModel
@@ -9,9 +9,9 @@ users = []
 
 
 class User(BaseModel):
-    id: int = None
+    id: int = 0  # Значение по умолчанию для id
     username: str
-    age: int = None
+    age: Optional[int] = None  # Поле age как Optional
 
 
 @app.get('/users')
@@ -20,12 +20,11 @@ def get_all_users() -> list[User]:
 
 
 @app.post('/user/{username}/{age}')
-def create_user(user: User, username: str, age: int) -> str:
-    user.id = len(users) + 1
-    user.username = username
-    user.age = age
-    users.append(user)
-    return {'id': f'{user.id}', 'username': f'{user.username}', 'age': f'{user.age}'}
+def create_user(username: str, age: Optional[int] = None) -> User:
+    new_id = (users[-1].id + 1) if users else None
+    new_user = User(id=new_id, username=username, age=age)
+    users.append(new_user)
+    return new_user
 
 
 @app.put('/user/{user_id}/{username}/{age}')
@@ -52,3 +51,4 @@ def delete_user(user_id: int):
 
 if __name__ == '__main__':
     uvicorn.run(app='module_16_4:app', host="127.0.0.1", port=8000, reload=True)
+
